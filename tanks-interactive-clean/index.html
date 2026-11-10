@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Интерактивные ёмкости</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;font-family:Arial,sans-serif}.stage{position:relative;width:100%;max-width:2048px;margin:0 auto;aspect-ratio:2048/682;overflow:hidden;background:#fff}.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none}.hotspot{position:absolute;border:0;background:transparent;cursor:pointer;padding:0;border-radius:16px}.hotspot:focus-visible{outline:3px solid #0a84ff;outline-offset:2px}.tooltip{position:absolute;z-index:20;transform:translate(-50%,-115%);background:rgba(0,0,0,.8);color:#fff;padding:9px 14px;border-radius:10px;font-size:clamp(14px,1.4vw,24px);font-weight:700;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s ease}.tooltip.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <img id="tankImage" alt="Размерный ряд прямоугольных ёмкостей">
+  <button class="hotspot" style="left:4.4%;top:43%;width:8.5%;height:38%" data-volume="500 л" aria-label="500 литров"></button>
+  <button class="hotspot" style="left:12.7%;top:37%;width:11.7%;height:45%" data-volume="1 000 л" aria-label="1000 литров"></button>
+  <button class="hotspot" style="left:23.6%;top:31%;width:13%;height:52%" data-volume="1 500 л" aria-label="1500 литров"></button>
+  <button class="hotspot" style="left:35.4%;top:28%;width:14%;height:55%" data-volume="2 000 л" aria-label="2000 литров"></button>
+  <button class="hotspot" style="left:49%;top:27%;width:21%;height:57%" data-volume="3 000 л" aria-label="3000 литров"></button>
+  <button class="hotspot" style="left:70.1%;top:26%;width:26%;height:60%" data-volume="5 000 л" aria-label="5000 литров"></button>
+  <div class="tooltip" id="tooltip"></div>
+</div>
+<script>
+(async()=>{
+  const stage=document.getElementById('stage');
+  const image=document.getElementById('tankImage');
+  const tooltip=document.getElementById('tooltip');
+  const hotspots=[...document.querySelectorAll('.hotspot')];
+  try{
+    const html=await fetch('../tanks-interactive/').then(r=>r.text());
+    const doc=new DOMParser().parseFromString(html,'text/html');
+    const src=doc.querySelector('.stage img, img')?.getAttribute('src');
+    if(src) image.src=src;
+  }catch(e){}
+  let pinned=null;
+  function show(el){const s=stage.getBoundingClientRect();const r=el.getBoundingClientRect();tooltip.textContent=el.dataset.volume;tooltip.style.left=((r.left-s.left)+r.width/2)+'px';tooltip.style.top=((r.top-s.top)+r.height*.16)+'px';tooltip.classList.add('show')}
+  function hide(){if(!pinned)tooltip.classList.remove('show')}
+  hotspots.forEach(el=>{el.addEventListener('mouseenter',()=>show(el));el.addEventListener('mouseleave',hide);el.addEventListener('focus',()=>show(el));el.addEventListener('blur',hide);el.addEventListener('click',()=>{pinned=pinned===el?null:el;if(pinned)show(el);else tooltip.classList.remove('show')})});
+  document.addEventListener('click',e=>{if(!e.target.classList.contains('hotspot')){pinned=null;tooltip.classList.remove('show')}});
+})();
+</script>
+</body>
+</html>
